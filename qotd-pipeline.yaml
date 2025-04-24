@@ -1,10 +1,10 @@
 apiVersion: tekton.dev/v1beta1 
 kind: Pipeline 
 metadata:
-  name: qotd-build-and-deploy
+  name: qotd-build-and-deploy-{cuid}
   labels:
-    sandbox: learn-pipelines
-    learn-pipelines: pipeline 
+    sandbox: learn-pipelines-{cuid}
+    learn-pipelines: pipeline-{cuid} 
 spec: 
   workspaces: 
   - name: shared-workspace
@@ -12,11 +12,15 @@ spec:
   - name: git-url
     type: string
     description: url of the git repo for the code of deployment
-    default: https://github.com/WaelMejri/qotd.git
+    default: https://github.com/chaimach/qotd.git
   - name: IMAGE
     type: string
     description: image to be built from the code
     default: image-registry.openshift-image-registry.svc:5000/training-project/qotd:latest
+  - name: BRANCH
+    type: string
+    description: branch of the git repo
+    default: master
   tasks: 
   - name: fetch-repository
     taskRef:
@@ -30,6 +34,8 @@ spec:
       value: $(params.git-url)
     - name: subdirectory
       value: ""
+    - name: branch
+      value: $(params.BRANCH)
     - name: deleteExisting
       value: "true"
   - name: build-image 
@@ -46,9 +52,9 @@ spec:
       workspace: shared-workspace
     runAfter:
     - fetch-repository
-  - name: apply-manifests 
+  - name: apply-manifests-{cuid} 
     taskRef:
-      name: apply-manifests
+      name: apply-manifests-{cuid}
     workspaces:
     - name: source
       workspace: shared-workspace
